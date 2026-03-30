@@ -27,7 +27,7 @@ class Program
                     Environment.Exit(0);
                     break;
                 case "type":
-                    PrintCommandType(command, userInput);
+                    PrintCommandType(userInput);
                     break;
                 default:
                     Console.WriteLine($"{command}: command not found");
@@ -35,7 +35,7 @@ class Program
             }
         }
 
-        static void PrintCommandType(string command, string input)
+        static void PrintCommandType(string input)
         {
             string[] defined = ["exit", "echo", "type"];
 
