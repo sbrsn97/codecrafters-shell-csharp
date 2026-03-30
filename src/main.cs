@@ -11,7 +11,16 @@ class Program
         {
             Console.Write("$ ");
             string? userInput = Console.ReadLine();
-            Console.WriteLine($"{userInput}: command not found");
+
+            switch(userInput)
+            {
+                case "exit":
+                    Environment.Exit(0);
+                    break;
+                default:
+                    Console.WriteLine($"{userInput}: command not found");
+                    break;
+            }
         }
     }
 }
