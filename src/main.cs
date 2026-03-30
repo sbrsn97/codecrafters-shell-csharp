@@ -53,8 +53,8 @@ class Program
 
             foreach(string directory in directories)
             {
-                string fileName = Path.GetFileName(directory + "/" + input);
-                if(!string.IsNullOrEmpty(fileName) && fileName.Substring(fileName.Length-4) == ".exe")
+                string fileName = Path.GetFileNameWithoutExtension(directory + "/" + input);
+                if(!string.IsNullOrEmpty(fileName) && Path.GetExtension(fileName) == ".exe")
                 {
                     Console.WriteLine($"{input} is {path}");
                 }
