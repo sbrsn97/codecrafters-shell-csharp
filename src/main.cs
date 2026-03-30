@@ -42,7 +42,23 @@ class Program
             if(defined.Any(x => x == input))
                 Console.WriteLine($"{input} is a shell builtin");
             else
-                Console.WriteLine($"{input}: not found");
+                //Console.WriteLine($"{input}: not found");
+                SearchForExecutables(input);
+        }
+
+        static void SearchForExecutables(string input)
+        {
+            string? path = Environment.GetEnvironmentVariable("PATH");
+            string[] directories = path!.Split(Path.PathSeparator);
+
+            foreach(string directory in directories)
+            {
+                string fileName = Path.GetFileName(directory + "/" + input);
+                if(!string.IsNullOrEmpty(fileName) && fileName.Substring(fileName.Length-4) == ".exe")
+                {
+                    Console.WriteLine($"{input} is {path}");
+                }
+            }
         }
     }
 }
