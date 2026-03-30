@@ -40,9 +40,9 @@ class Program
             string[] defined = ["exit", "echo", "type"];
 
             if(defined.Any(x => x == input))
-                Console.WriteLine($"{input} is a shell builtin");
+                Console.WriteLine($"{input}: is a shell builtin");
             else
-                Console.WriteLine($"{command}: not found");
+                Console.WriteLine($"{input}: not found");
         }
     }
 }
