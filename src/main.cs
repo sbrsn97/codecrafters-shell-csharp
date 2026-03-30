@@ -2,8 +2,16 @@ class Program
 {
     static void Main()
     {
-        Console.Write("$ ");
-        string? userInput = Console.ReadLine();
-        Console.WriteLine($"{userInput}: command not found");
+        ReadEvalPrintLoop(); 
+    }
+
+    static void ReadEvalPrintLoop()
+    {
+        while(true)
+        {
+            Console.Write("$ ");
+            string? userInput = Console.ReadLine();
+            Console.WriteLine($"{userInput}: command not found");
+        }
     }
 }
