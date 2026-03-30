@@ -1,6 +1,5 @@
 class Program
 {
-    readonly string[] commands = {"echo"};
     static void Main()
     {
         ReadEvalPrintLoop(); 
@@ -19,11 +18,11 @@ class Program
             string command = splittedInput[0];
             userInput = userInput.Substring(command.Length).Trim();
 
-            if(splittedInput.Count() > 0)
-
-
             switch(command)
             {
+                case "type":
+                    PrintCommandType(command);
+                    break;
                 case "exit":
                     Environment.Exit(0);
                     break;
@@ -34,6 +33,16 @@ class Program
                     Console.WriteLine($"{command}: command not found");
                     break;
             }
+        }
+
+        static void PrintCommandType(string command)
+        {
+            string[] defined = ["exit", "echo", "type"];
+
+            if(defined.Any(x => x == command))
+                Console.WriteLine($"{command}");
+            else
+                Console.WriteLine($"{command}: command not found");
         }
     }
 }
