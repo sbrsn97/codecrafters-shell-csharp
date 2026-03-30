@@ -27,7 +27,7 @@ class Program
                     Environment.Exit(0);
                     break;
                 case "type":
-                    PrintCommandType(command);
+                    PrintCommandType(command, userInput);
                     break;
                 default:
                     Console.WriteLine($"{command}: command not found");
@@ -35,12 +35,12 @@ class Program
             }
         }
 
-        static void PrintCommandType(string command)
+        static void PrintCommandType(string command, string input)
         {
             string[] defined = ["exit", "echo", "type"];
 
             if(defined.Any(x => x == command))
-                Console.WriteLine($"{command}");
+                Console.WriteLine($"{input}");
             else
                 Console.WriteLine($"{command}: command not found");
         }
