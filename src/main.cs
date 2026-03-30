@@ -1,5 +1,6 @@
 class Program
 {
+    readonly string[] commands = {"echo"};
     static void Main()
     {
         ReadEvalPrintLoop(); 
@@ -11,14 +12,26 @@ class Program
         {
             Console.Write("$ ");
             string? userInput = Console.ReadLine();
+            if(userInput == null)
+                break;
+                
+            string[] splittedInput = userInput.Split(' ');
+            string command = splittedInput[0];
+            userInput = userInput.Substring(command.Length);
 
-            switch(userInput)
+            if(splittedInput.Count() > 0)
+
+
+            switch(command)
             {
                 case "exit":
                     Environment.Exit(0);
                     break;
+                case "echo":
+                    Console.WriteLine($"echo {userInput}");
+                    break;
                 default:
-                    Console.WriteLine($"{userInput}: command not found");
+                    Console.WriteLine($"{command}: command not found");
                     break;
             }
         }
