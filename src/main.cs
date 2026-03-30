@@ -20,14 +20,14 @@ class Program
 
             switch(command)
             {
-                case "type":
-                    PrintCommandType(command);
+                case "echo":
+                    Console.WriteLine($"{userInput}");
                     break;
                 case "exit":
                     Environment.Exit(0);
                     break;
-                case "echo":
-                    Console.WriteLine($"{userInput}");
+                case "type":
+                    PrintCommandType(command);
                     break;
                 default:
                     Console.WriteLine($"{command}: command not found");
