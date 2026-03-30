@@ -28,7 +28,7 @@ class Program
                     Environment.Exit(0);
                     break;
                 case "echo":
-                    Console.WriteLine($"echo {userInput}");
+                    Console.WriteLine($"{userInput}");
                     break;
                 default:
                     Console.WriteLine($"{command}: command not found");
