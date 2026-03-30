@@ -17,7 +17,7 @@ class Program
                 
             string[] splittedInput = userInput.Split(' ');
             string command = splittedInput[0];
-            userInput = userInput.Substring(command.Length);
+            userInput = userInput.Substring(command.Length-1);
 
             if(splittedInput.Count() > 0)
 
