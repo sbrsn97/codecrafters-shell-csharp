@@ -53,10 +53,26 @@ class Program
 
             foreach(string directory in directories)
             {
-                string fileName = Path.GetFileNameWithoutExtension(directory + "/" + input);
-                if(!string.IsNullOrEmpty(fileName) && Path.GetExtension(fileName) == ".exe")
+                string fullPath = Path.Combine(directory, input);
+
+                if(string.IsNullOrEmpty(fullPath) || !File.Exists(fullPath))
+                {
+                    continue;
+                }
+
+                UnixFileMode mode = File.GetUnixFileMode(fullPath);
+
+                bool isExecutable = mode.HasFlag(UnixFileMode.GroupExecute) ||
+                                    mode.HasFlag(UnixFileMode.OtherExecute) ||
+                                    mode.HasFlag(UnixFileMode.UserExecute);
+
+                if(isExecutable)
                 {
                     Console.WriteLine($"{input} is {path}");
+                }
+                else
+                {
+                    Console.WriteLine($"{input} not found");
                 }
             }
         }
