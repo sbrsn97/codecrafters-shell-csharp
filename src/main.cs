@@ -50,6 +50,7 @@ class Program
         {
             string? path = Environment.GetEnvironmentVariable("PATH");
             string[] directories = path!.Split(Path.PathSeparator);
+            bool found = false;
 
             foreach(string directory in directories)
             {
@@ -68,13 +69,13 @@ class Program
 
                 if(isExecutable)
                 {
-                    Console.WriteLine($"{input} is {path}");
-                }
-                else
-                {
-                    Console.WriteLine($"{input} not found");
+                    Console.WriteLine($"{input} is {fullPath}");
+                    found = true;
                 }
             }
+            
+            if(found)
+                Console.WriteLine($"{input} not found");
         }
     }
 }
