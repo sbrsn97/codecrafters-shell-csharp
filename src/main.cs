@@ -56,7 +56,7 @@ class Program
             {
                 string fullPath = Path.Combine(directory, input);
 
-                if(string.IsNullOrEmpty(fullPath) || !File.Exists(fullPath))
+                if(!File.Exists(fullPath))
                 {
                     continue;
                 }
@@ -74,8 +74,8 @@ class Program
                 }
             }
             
-            if(found)
-                Console.WriteLine($"{input} not found");
+            if(!found)
+                Console.WriteLine($"{input}: not found");
         }
     }
 }
