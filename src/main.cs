@@ -19,6 +19,7 @@ class Program
                 
             string[] splitInput = userInput.Split(new[] { ' ' }, 2);
             string command = splitInput[0];
+            string fullCommand = userInput;
 
             if(splitInput.Length > 1)
                 userInput = splitInput[1];
@@ -35,7 +36,10 @@ class Program
                     PrintCommandType(userInput);
                     break;
                 default:
-                    Console.WriteLine($"{command}: command not found");
+                    if (!SearchForExecutables(fullCommand, true))
+                    {
+                        Console.WriteLine($"{command}: command not found");
+                    }
                     break;
             }
         }
@@ -47,24 +51,21 @@ class Program
             if(defined.Any(x => x == input))
                 Console.WriteLine($"{input} is a shell builtin");
             else
-                SearchForExecutables(input);
+                SearchForExecutables(input, false);
         }
 
-        static void SearchForExecutables(string input)
+        static bool SearchForExecutables(string input, bool execute)
         {
             bool found = false;
-            string args = "";
             string? path = Environment.GetEnvironmentVariable("PATH");
             string[] directories = path!.Split(Path.PathSeparator);
             string[] splitInput = input.Split(new[] { ' '}, 2);
-            input = splitInput[0];
-
-            if(splitInput.Length > 1)
-                args = splitInput[1];
+            
+            string programName = splitInput[0];
 
             foreach (string directory in directories)
             {
-                string fullPath = Path.Combine(directory, input);
+                string fullPath = Path.Combine(directory, programName);
 
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 {
@@ -74,7 +75,10 @@ class Program
                         string candidate = fullPath + ext;
                         if (File.Exists(candidate))
                         {
-                            Execute(candidate, args);
+                            if (execute)
+                                Execute(input);
+                            else
+                                PrintTypeFound(programName, candidate);
                             found = true;
                             break;
                         }
@@ -91,7 +95,10 @@ class Program
 
                         if (isExecutable)
                         {
-                            Execute(fullPath, args);
+                            if (execute)
+                                Execute(input);
+                            else
+                                PrintTypeFound(programName, fullPath);
                             found = true;
                         }
                     }
@@ -101,19 +108,36 @@ class Program
             }
 
             if (!found)
-                Console.WriteLine($"{input}: not found");
+            {
+                if (execute)
+                    Console.WriteLine($"{programName}: command not found");
+                else
+                    Console.WriteLine($"{programName}: not found"); 
+            }
+
+            return found;
         }
 
-        static void Execute(string exePath, string args)
+        static void PrintTypeFound(string command, string path) 
+        {
+            Console.WriteLine($"{command} is {path}");
+        }
+
+
+        static void Execute(string fullCommandLine)
         {
             ProcessStartInfo start = new ProcessStartInfo();
-            start.Arguments = args; 
-            start.FileName = exePath;
+            start.FileName = "/bin/sh";
+            start.Arguments = $"-c \"{fullCommandLine}\"";
+            start.RedirectStandardOutput = true;
+            start.UseShellExecute = false;
 
             int exitCode;
 
             using (Process proc = Process.Start(start)!)
             {
+                string output = proc.StandardOutput.ReadToEnd();
+                Console.Write(output);
                 proc.WaitForExit();
 
                 exitCode = proc.ExitCode;
