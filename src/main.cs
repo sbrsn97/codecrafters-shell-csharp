@@ -3,8 +3,14 @@ using System.Runtime.InteropServices;
 
 class Program
 {
-    static void Main()
+    static void Main(string[] args)
     {
+        if (args.Length > 0)
+        {
+            Console.WriteLine($"Program was passed {args.Length} args (including program name).");
+            return;
+        }
+        
         ReadEvalPrintLoop();
     }
 
