@@ -1,8 +1,12 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
 public static class CompletionEngine
 {
     public static CompletionResult Complete(string input, CompletionState state)
     {
-        if (string.IsNullOrEmpty(input) || input.Contains(' ') || input.EndsWith(' '))
+        if (string.IsNullOrEmpty(input) || input.EndsWith(' ') || input.Contains(' '))
         {
             state.Reset();
             return CompletionResult.NoChange(input);
@@ -19,21 +23,61 @@ public static class CompletionEngine
         if (matches.Count == 1)
         {
             state.Reset();
-            string completed = matches[0] == input ? input + " " : matches[0] + " ";
-            return CompletionResult.Replace(completed);
+            string only = matches[0];
+
+            if (input == only)
+                return CompletionResult.Replace(only + " ");
+
+            return CompletionResult.Replace(only + " ");
         }
 
-        bool sameInput = state.AwaitingSecondTab && state.LastInput == input;
+        string lcp = GetLongestCommonPrefix(matches);
 
-        if (!sameInput)
+        if (lcp.Length > input.Length)
+        {
+            state.Reset();
+            return CompletionResult.Replace(lcp);
+        }
+
+        bool sameInputAsBefore = state.AwaitingSecondTab && state.LastInput == input;
+
+        if (!sameInputAsBefore)
         {
             state.LastInput = input;
             state.AwaitingSecondTab = true;
             return CompletionResult.Bell(input);
         }
 
-        state.AwaitingSecondTab = false;
-        state.LastInput = input;
+        state.Reset();
         return CompletionResult.ShowMatches(input, matches);
+    }
+
+    private static string GetLongestCommonPrefix(List<string> values)
+    {
+        if (values.Count == 0)
+            return string.Empty;
+
+        string prefix = values[0];
+
+        for (int i = 1; i < values.Count; i++)
+        {
+            prefix = GetCommonPrefix(prefix, values[i]);
+
+            if (prefix.Length == 0)
+                break;
+        }
+
+        return prefix;
+    }
+
+    private static string GetCommonPrefix(string a, string b)
+    {
+        int len = Math.Min(a.Length, b.Length);
+        int i = 0;
+
+        while (i < len && a[i] == b[i])
+            i++;
+
+        return a[..i];
     }
 }
