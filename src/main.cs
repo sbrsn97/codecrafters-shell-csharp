@@ -57,7 +57,9 @@ class Program
         const string prompt = "$ ";
         var buffer = new StringBuilder();
 
-        Console.Write(prompt);
+        Console.Out.Write(prompt);
+        Console.Out.Flush();
+
         int promptTop = Console.CursorTop;
 
         while (true)
@@ -66,7 +68,8 @@ class Program
 
             if (keyInfo.Key == ConsoleKey.Enter)
             {
-                Console.WriteLine();
+                Console.Out.WriteLine();
+                Console.Out.Flush();
                 return buffer.ToString();
             }
 
@@ -83,7 +86,8 @@ class Program
                 }
                 else
                 {
-                    Console.Write("\a");
+                    Console.Out.Write('\a');
+                    Console.Out.Flush();
                 }
 
                 continue;
@@ -94,7 +98,8 @@ class Program
                 if (buffer.Length > 0)
                 {
                     buffer.Remove(buffer.Length - 1, 1);
-                    Console.Write("\b \b");
+                    Console.Out.Write("\b \b");
+                    Console.Out.Flush();
                 }
 
                 continue;
@@ -103,7 +108,8 @@ class Program
             if (!char.IsControl(keyInfo.KeyChar))
             {
                 buffer.Append(keyInfo.KeyChar);
-                Console.Write(keyInfo.KeyChar);
+                Console.Out.Write(keyInfo.KeyChar);
+                Console.Out.Flush();
             }
         }
     }
@@ -113,15 +119,16 @@ class Program
         Console.SetCursorPosition(0, promptTop);
 
         string fullLine = prompt + text;
-        Console.Write(fullLine);
+        Console.Out.Write(fullLine);
 
         int remaining = Console.BufferWidth - fullLine.Length;
         if (remaining > 0)
         {
-            Console.Write(new string(' ', remaining));
+            Console.Out.Write(new string(' ', remaining));
         }
 
         Console.SetCursorPosition(fullLine.Length, promptTop);
+        Console.Out.Flush();
     }
 
     static string TryAutocompleteBuiltin(string input)
