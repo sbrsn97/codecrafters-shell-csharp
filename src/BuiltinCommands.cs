@@ -10,7 +10,8 @@ public static class BuiltinCommands
             ["echo"] = arg => Console.WriteLine(arg),
             ["exit"] = arg => Environment.Exit(0),
             ["pwd"]  = arg => Console.WriteLine(Directory.GetCurrentDirectory()),
-            ["type"] = arg => PrintCommandType(arg!)
+            ["type"] = arg => PrintCommandType(arg!),
+            ["cd"]   = arg => Directory.SetCurrentDirectory(arg!)
         };
 
     private static void PrintCommandType(string input)
