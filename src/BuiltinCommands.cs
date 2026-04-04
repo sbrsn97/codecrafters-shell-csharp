@@ -26,7 +26,10 @@ public static class BuiltinCommands
     {
         try
         {
-            Directory.SetCurrentDirectory(path);
+            if(Directory.Exists(path))
+                Directory.SetCurrentDirectory(path);
+            else
+                Console.WriteLine($"cd: {path}: No such file or directory");
         }
         catch (System.Exception)
         {
