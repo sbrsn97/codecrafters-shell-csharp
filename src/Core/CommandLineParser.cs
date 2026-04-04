@@ -135,6 +135,14 @@ public static class CommandLineParser
                 continue;
             }
 
+            if (c == '2' && i + 1 < input.Length && input[i + 1] == '>')
+            {
+                FlushWord();
+                tokens.Add(new Token(TokenType.RedirectStderr, "2>"));
+                i++;
+                continue;
+            }
+
             if (c == '>')
             {
                 FlushWord();
@@ -157,6 +165,7 @@ public static class CommandLineParser
     {
         List<string> words = new();
         string? stdoutRedirectPath = null;
+        string? stderrRedirectPath = null;
 
         for (int i = 0; i < tokens.Count; i++)
         {
@@ -168,12 +177,23 @@ public static class CommandLineParser
                 continue;
             }
 
-            if (token.Type == TokenType.RedirectStdout || token.Type == TokenType.RedirectFdStdout)
+            if (token.Type == TokenType.RedirectStdout ||
+                token.Type == TokenType.RedirectFdStdout)
             {
                 if (i + 1 >= tokens.Count || tokens[i + 1].Type != TokenType.Word)
                     throw new InvalidOperationException("Missing redirection target");
 
                 stdoutRedirectPath = tokens[i + 1].Value;
+                i++;
+                continue;
+            }
+
+            if (token.Type == TokenType.RedirectStderr)
+            {
+                if (i + 1 >= tokens.Count || tokens[i + 1].Type != TokenType.Word)
+                    throw new InvalidOperationException("Missing redirection target");
+
+                stderrRedirectPath = tokens[i + 1].Value;
                 i++;
                 continue;
             }
@@ -185,6 +205,11 @@ public static class CommandLineParser
         string command = words[0];
         List<string> arguments = words.Skip(1).ToList();
 
-        return new CommandLine(rawInput, command, arguments, stdoutRedirectPath);
+        return new CommandLine(
+            rawInput,
+            command,
+            arguments,
+            stdoutRedirectPath,
+            stderrRedirectPath);
     }
 }

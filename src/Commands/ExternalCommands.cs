@@ -1,12 +1,11 @@
 using System;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Runtime.InteropServices;
 
 public static class ExternalCommands
 {
-    public static bool SearchForExecutables(CommandLine cmd, bool execute, TextWriter output)
+    public static bool SearchForExecutables(CommandLine cmd, bool execute, TextWriter stdout, TextWriter stderr)
     {
         bool found = false;
         string? path = Environment.GetEnvironmentVariable("PATH");
@@ -28,9 +27,9 @@ public static class ExternalCommands
                     if (File.Exists(candidate))
                     {
                         if (execute)
-                            Execute(candidate, cmd, output);
+                            Execute(cmd, stdout, stderr);
                         else
-                            PrintTypeFound(programName, candidate, output);
+                            PrintTypeFound(programName, candidate, stdout);
 
                         found = true;
                         break;
@@ -50,9 +49,9 @@ public static class ExternalCommands
                     if (isExecutable)
                     {
                         if (execute)
-                            Execute(fullPath, cmd, output);
+                            Execute(cmd, stdout, stderr);
                         else
-                            PrintTypeFound(programName, fullPath, output);
+                            PrintTypeFound(programName, fullPath, stdout);
 
                         found = true;
                     }
@@ -65,7 +64,7 @@ public static class ExternalCommands
 
         if (!found)
         {
-            output.WriteLine(execute
+            stderr.WriteLine(execute
                 ? $"{programName}: command not found"
                 : $"{programName}: not found");
         }
@@ -73,19 +72,19 @@ public static class ExternalCommands
         return found;
     }
 
-    private static void PrintTypeFound(string command, string path, TextWriter output)
+    private static void PrintTypeFound(string command, string path, TextWriter stdout)
     {
-        output.WriteLine($"{command} is {path}");
+        stdout.WriteLine($"{command} is {path}");
     }
 
-    private static void Execute(string executablePath, CommandLine cmd, TextWriter output)
+    private static void Execute(CommandLine cmd, TextWriter stdout, TextWriter stderr)
     {
         var start = new ProcessStartInfo
         {
             FileName = cmd.Command,
             UseShellExecute = false,
             RedirectStandardOutput = true,
-            RedirectStandardError = false
+            RedirectStandardError = true
         };
 
         foreach (string arg in cmd.Arguments)
@@ -94,8 +93,13 @@ public static class ExternalCommands
         }
 
         using Process proc = Process.Start(start)!;
-        string stdout = proc.StandardOutput.ReadToEnd();
-        output.Write(stdout);
+
+        string stdOutText = proc.StandardOutput.ReadToEnd();
+        string stdErrText = proc.StandardError.ReadToEnd();
+
         proc.WaitForExit();
+
+        stdout.Write(stdOutText);
+        stderr.Write(stdErrText);
     }
 }

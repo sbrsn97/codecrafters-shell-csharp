@@ -1,14 +1,33 @@
-using System.IO;
 using System.Text;
+
+public sealed class OutputTargets
+{
+    public TextWriter Stdout { get; }
+    public TextWriter Stderr { get; }
+
+    public OutputTargets(TextWriter stdout, TextWriter stderr)
+    {
+        Stdout = stdout;
+        Stderr = stderr;
+    }
+}
 
 public static class OutputWriterFactory
 {
-    public static TextWriter CreateOutputWriter(CommandLine cmd)
+    public static OutputTargets Create(CommandLine cmd)
     {
-        if (string.IsNullOrWhiteSpace(cmd.StdoutRedirectPath))
-            return new NonClosingTextWriter(Console.Out);
+        TextWriter stdout = CreateWriter(cmd.StdoutRedirectPath, Console.Out);
+        TextWriter stderr = CreateWriter(cmd.StderrRedirectPath, Console.Error);
 
-        return new StreamWriter(cmd.StdoutRedirectPath, append: false)
+        return new OutputTargets(stdout, stderr);
+    }
+
+    private static TextWriter CreateWriter(string? path, TextWriter fallback)
+    {
+        if (string.IsNullOrWhiteSpace(path))
+            return new NonClosingTextWriter(fallback);
+
+        return new StreamWriter(path, append: false)
         {
             AutoFlush = true
         };

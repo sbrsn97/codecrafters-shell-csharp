@@ -22,26 +22,29 @@ class Program
             }
             catch (InvalidOperationException ex)
             {
-                Console.WriteLine(ex.Message);
+                Console.Error.WriteLine(ex.Message);
                 continue;
             }
 
             if (parsed == null)
                 continue;
 
-            using TextWriter output = OutputWriterFactory.CreateOutputWriter(parsed);
+            OutputTargets targets = OutputWriterFactory.Create(parsed);
+
+            using TextWriter stdout = targets.Stdout;
+            using TextWriter stderr = targets.Stderr;
 
             if (BuiltinCommands.Commands.TryGetValue(parsed.Command, out var action))
             {
-                action(parsed, output);
+                action(parsed, stdout, stderr);
             }
             else
             {
-                bool found = ExternalCommands.SearchForExecutables(parsed, true, output);
+                bool found = ExternalCommands.SearchForExecutables(parsed, true, stdout, stderr);
 
                 if (!found && OperatingSystem.IsWindows() && parsed.Command == "cat")
                 {
-                    BuiltinCommands.RunCat(parsed, output);
+                    BuiltinCommands.RunCat(parsed, stdout, stderr);
                 }
             }
         }
