@@ -39,7 +39,8 @@ public static class BuiltinCommands
                     new List<string>(),
                     null,
                     false,
-                    null
+                    null,
+                    false
                 ),
                 false,
                 stdout,

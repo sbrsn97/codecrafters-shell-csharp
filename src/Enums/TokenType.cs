@@ -5,5 +5,6 @@ public enum TokenType
     RedirectFdStdout,
     RedirectStderr,
     AppendStdout,
-    AppendFdStdout 
+    AppendFdStdout,
+    AppendStderr
 }

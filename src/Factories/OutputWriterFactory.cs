@@ -24,7 +24,7 @@ public static class OutputWriterFactory
         TextWriter stderr = CreateWriter(
             cmd.StderrRedirectPath,
             Console.Error,
-            append: false);
+            cmd.StderrAppend);
 
         return new OutputTargets(stdout, stderr);
     }

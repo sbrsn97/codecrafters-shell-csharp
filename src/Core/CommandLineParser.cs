@@ -123,44 +123,52 @@ public static class CommandLineParser
                 continue;
             }
 
-            if (c == '1' && i + 2 < input.Length && input[i + 1] == '>' && input[i + 2] == '>')
-            {
-                FlushWord();
-                tokens.Add(new Token(TokenType.AppendFdStdout, "1>>"));
-                i += 2;
-                continue;
-            }
+    if (c == '1' && i + 2 < input.Length && input[i + 1] == '>' && input[i + 2] == '>')
+    {
+        FlushWord();
+        tokens.Add(new Token(TokenType.AppendFdStdout, "1>>"));
+        i += 2;
+        continue;
+    }
 
-            if (c == '>' && i + 1 < input.Length && input[i + 1] == '>')
-            {
-                FlushWord();
-                tokens.Add(new Token(TokenType.AppendStdout, ">>"));
-                i++;
-                continue;
-            }
+    if (c == '2' && i + 2 < input.Length && input[i + 1] == '>' && input[i + 2] == '>')
+    {
+        FlushWord();
+        tokens.Add(new Token(TokenType.AppendStderr, "2>>"));
+        i += 2;
+        continue;
+    }
 
-            if (c == '1' && i + 1 < input.Length && input[i + 1] == '>')
-            {
-                FlushWord();
-                tokens.Add(new Token(TokenType.RedirectFdStdout, "1>"));
-                i++;
-                continue;
-            }
+    if (c == '>' && i + 1 < input.Length && input[i + 1] == '>')
+    {
+        FlushWord();
+        tokens.Add(new Token(TokenType.AppendStdout, ">>"));
+        i++;
+        continue;
+    }
 
-            if (c == '2' && i + 1 < input.Length && input[i + 1] == '>')
-            {
-                FlushWord();
-                tokens.Add(new Token(TokenType.RedirectStderr, "2>"));
-                i++;
-                continue;
-            }
+    if (c == '1' && i + 1 < input.Length && input[i + 1] == '>')
+    {
+        FlushWord();
+        tokens.Add(new Token(TokenType.RedirectFdStdout, "1>"));
+        i++;
+        continue;
+    }
 
-            if (c == '>')
-            {
-                FlushWord();
-                tokens.Add(new Token(TokenType.RedirectStdout, ">"));
-                continue;
-            }
+    if (c == '2' && i + 1 < input.Length && input[i + 1] == '>')
+    {
+        FlushWord();
+        tokens.Add(new Token(TokenType.RedirectStderr, "2>"));
+        i++;
+        continue;
+    }
+
+    if (c == '>')
+    {
+        FlushWord();
+        tokens.Add(new Token(TokenType.RedirectStdout, ">"));
+        continue;
+    }
 
             current.Append(c);
             tokenStarted = true;
@@ -179,6 +187,7 @@ public static class CommandLineParser
         string? stdoutRedirectPath = null;
         bool stdoutAppend = false;
         string? stderrRedirectPath = null;
+        bool stderrAppend = false;
 
         for (int i = 0; i < tokens.Count; i++)
         {
@@ -223,6 +232,17 @@ public static class CommandLineParser
                 i++;
                 continue;
             }
+
+            if (token.Type == TokenType.AppendStderr)
+            {
+                if (i + 1 >= tokens.Count || tokens[i + 1].Type != TokenType.Word)
+                    throw new InvalidOperationException("Missing redirection target");
+
+                stderrRedirectPath = tokens[i + 1].Value;
+                stderrAppend = true;
+                i++;
+                continue;
+            }
         }
 
         if (words.Count == 0)
@@ -237,6 +257,7 @@ public static class CommandLineParser
             arguments,
             stdoutRedirectPath,
             stdoutAppend,
-            stderrRedirectPath);
+            stderrRedirectPath,
+            stderrAppend);
     }
 }

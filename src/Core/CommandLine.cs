@@ -8,6 +8,7 @@ public sealed class CommandLine
     public bool StdoutAppend { get; }
 
     public string? StderrRedirectPath { get; }
+    public bool StderrAppend { get; }
 
     public CommandLine(
         string rawInput,
@@ -15,7 +16,8 @@ public sealed class CommandLine
         List<string> arguments,
         string? stdoutRedirectPath,
         bool stdoutAppend,
-        string? stderrRedirectPath)
+        string? stderrRedirectPath,
+        bool stderrAppend)
     {
         RawInput = rawInput;
         Command = command;
@@ -23,5 +25,6 @@ public sealed class CommandLine
         StdoutRedirectPath = stdoutRedirectPath;
         StdoutAppend = stdoutAppend;
         StderrRedirectPath = stderrRedirectPath;
+        StderrAppend = stderrAppend;
     }
 }
