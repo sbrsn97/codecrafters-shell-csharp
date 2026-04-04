@@ -116,15 +116,24 @@ public static class BuiltinCommands
 
     private static void ListDirectory(CommandLine cmd, TextWriter output)
     {
-        if (cmd.Arguments.Count > 1)
+        string? targetPath = null;
+
+        foreach (string arg in cmd.Arguments)
         {
+            if (arg == "-1")
+                continue;
+
+            if (targetPath == null)
+            {
+                targetPath = ExpandHomePath(arg);
+                continue;
+            }
+
             output.WriteLine("ls: too many arguments");
             return;
         }
 
-        string path = cmd.Arguments.Count == 0
-            ? Directory.GetCurrentDirectory()
-            : ExpandHomePath(cmd.Arguments[0]);
+        string path = targetPath ?? Directory.GetCurrentDirectory();
 
         try
         {
@@ -136,7 +145,7 @@ public static class BuiltinCommands
 
             if (!Directory.Exists(path))
             {
-                output.WriteLine($"ls: cannot access '{cmd.Arguments[0]}': No such file or directory");
+                output.WriteLine($"ls: cannot access '{(targetPath ?? path)}': No such file or directory");
                 return;
             }
 
