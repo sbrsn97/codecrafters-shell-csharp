@@ -56,6 +56,7 @@ class Program
     {
         const string prompt = "$ ";
         var buffer = new StringBuilder();
+        var completionState = new CompletionState();
 
         Console.Write(prompt);
         Console.Out.Flush();
@@ -74,16 +75,28 @@ class Program
             if (keyInfo.Key == ConsoleKey.Tab)
             {
                 string current = buffer.ToString();
-                string completed = TryAutocompleteCommand(current);
+                CompletionResult result = CompletionEngine.Complete(current, completionState);
 
-                if (completed == current)
+                if (result.RingBell)
                 {
                     Console.Write('\a');
                     Console.Out.Flush();
+                    continue;
                 }
-                else
+
+                if (result.ShowCandidates)
                 {
-                    string suffix = completed.Substring(current.Length);
+                    Console.WriteLine();
+                    Console.WriteLine(string.Join("  ", result.Candidates));
+                    Console.Write(prompt);
+                    Console.Write(current);
+                    Console.Out.Flush();
+                    continue;
+                }
+
+                if (result.NewBuffer != current)
+                {
+                    string suffix = result.NewBuffer.Substring(current.Length);
                     buffer.Append(suffix);
                     Console.Write(suffix);
                     Console.Out.Flush();
@@ -91,6 +104,8 @@ class Program
 
                 continue;
             }
+
+            completionState.Reset();
 
             if (keyInfo.Key == ConsoleKey.Backspace)
             {
