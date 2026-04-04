@@ -74,7 +74,7 @@ class Program
             if (keyInfo.Key == ConsoleKey.Tab)
             {
                 string current = buffer.ToString();
-                string completed = TryAutocompleteBuiltin(current);
+                string completed = TryAutocompleteCommand(current);
 
                 if (completed == current)
                 {
@@ -113,7 +113,7 @@ class Program
         }
     }
 
-    static string TryAutocompleteBuiltin(string input)
+    static string TryAutocompleteCommand(string input)
     {
         if (string.IsNullOrEmpty(input))
             return input;
@@ -124,19 +124,23 @@ class Program
         if (input.Contains(' '))
             return input;
 
-        var matches = BuiltinCommands.Commands.Keys
+        var candidates = BuiltinCommands.Commands.Keys
+            .Concat(ExternalCommands.GetExecutableNamesFromPath())
+            .Distinct(StringComparer.Ordinal)
             .Where(x => x.StartsWith(input, StringComparison.Ordinal))
-            .OrderBy(x => x)
+            .OrderBy(x => x, StringComparer.Ordinal)
             .ToList();
 
-        if (matches.Count != 1)
+        if (candidates.Count == 0)
             return input;
 
-        string match = matches[0];
+        // Tam eşleşme varsa direkt boşluk ekle
+        if (candidates.Any(x => x == input))
+            return input + " ";
 
-        if (input == match)
-            return match + " ";
+        if (candidates.Count == 1)
+            return candidates[0] + " ";
 
-        return match + " ";
+        return input;
     }
 }

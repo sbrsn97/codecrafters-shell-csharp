@@ -102,4 +102,82 @@ public static class ExternalCommands
         stdout.Write(stdOutText);
         stderr.Write(stdErrText);
     }
+        public static IEnumerable<string> GetExecutableNamesFromPath()
+    {
+        string? path = Environment.GetEnvironmentVariable("PATH");
+        if (string.IsNullOrWhiteSpace(path))
+            yield break;
+
+        var seen = new HashSet<string>(StringComparer.Ordinal);
+        string[] directories = path.Split(Path.PathSeparator, StringSplitOptions.RemoveEmptyEntries);
+
+        foreach (string directory in directories)
+        {
+            if (!Directory.Exists(directory))
+                continue;
+
+            IEnumerable<string> files;
+            try
+            {
+                files = Directory.EnumerateFiles(directory);
+            }
+            catch
+            {
+                continue;
+            }
+
+            foreach (string file in files)
+            {
+                string? candidate = GetExecutableCommandName(file);
+                if (candidate is null)
+                    continue;
+
+                if (seen.Add(candidate))
+                    yield return candidate;
+            }
+        }
+    }
+
+    private static string? GetExecutableCommandName(string fullPath)
+    {
+        if (!File.Exists(fullPath))
+            return null;
+
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            string ext = Path.GetExtension(fullPath);
+
+            if (!string.Equals(ext, ".exe", StringComparison.OrdinalIgnoreCase) &&
+                !string.Equals(ext, ".bat", StringComparison.OrdinalIgnoreCase) &&
+                !string.Equals(ext, ".cmd", StringComparison.OrdinalIgnoreCase) &&
+                !string.Equals(ext, ".com", StringComparison.OrdinalIgnoreCase))
+            {
+                return null;
+            }
+
+            return Path.GetFileNameWithoutExtension(fullPath);
+        }
+        else
+        {
+            UnixFileMode mode;
+            try
+            {
+                mode = File.GetUnixFileMode(fullPath);
+            }
+            catch
+            {
+                return null;
+            }
+
+            bool isExecutable =
+                mode.HasFlag(UnixFileMode.UserExecute) ||
+                mode.HasFlag(UnixFileMode.GroupExecute) ||
+                mode.HasFlag(UnixFileMode.OtherExecute);
+
+            if (!isExecutable)
+                return null;
+
+            return Path.GetFileName(fullPath);
+        }
+    }
 }
