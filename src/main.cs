@@ -57,19 +57,15 @@ class Program
         const string prompt = "$ ";
         var buffer = new StringBuilder();
 
-        Console.Out.Write(prompt);
-        Console.Out.Flush();
-
+        Console.Write(prompt);
         int promptTop = Console.CursorTop;
 
         while (true)
         {
-            ConsoleKeyInfo keyInfo = Console.ReadKey(intercept: true);
+            ConsoleKeyInfo keyInfo = Console.ReadKey(intercept: false);
 
             if (keyInfo.Key == ConsoleKey.Enter)
             {
-                Console.Out.WriteLine();
-                Console.Out.Flush();
                 return buffer.ToString();
             }
 
@@ -82,11 +78,12 @@ class Program
                 {
                     buffer.Clear();
                     buffer.Append(completed);
-                    RedrawInput(prompt, buffer.ToString(), promptTop);
+                    RedrawInput(prompt, completed, promptTop);
                 }
                 else
                 {
-                    Console.Out.Write('\a');
+                    RedrawInput(prompt, current, promptTop);
+                    Console.Write('\a');
                     Console.Out.Flush();
                 }
 
@@ -98,8 +95,6 @@ class Program
                 if (buffer.Length > 0)
                 {
                     buffer.Remove(buffer.Length - 1, 1);
-                    Console.Out.Write("\b \b");
-                    Console.Out.Flush();
                 }
 
                 continue;
@@ -108,8 +103,6 @@ class Program
             if (!char.IsControl(keyInfo.KeyChar))
             {
                 buffer.Append(keyInfo.KeyChar);
-                Console.Out.Write(keyInfo.KeyChar);
-                Console.Out.Flush();
             }
         }
     }
@@ -119,12 +112,12 @@ class Program
         Console.SetCursorPosition(0, promptTop);
 
         string fullLine = prompt + text;
-        Console.Out.Write(fullLine);
+        Console.Write(fullLine);
 
-        int remaining = Console.BufferWidth - fullLine.Length;
+        int remaining = Math.Max(0, Console.BufferWidth - fullLine.Length);
         if (remaining > 0)
         {
-            Console.Out.Write(new string(' ', remaining));
+            Console.Write(new string(' ', remaining));
         }
 
         Console.SetCursorPosition(fullLine.Length, promptTop);
