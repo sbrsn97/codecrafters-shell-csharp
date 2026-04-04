@@ -67,19 +67,19 @@ public static class CommandLineParser
 
                 if (c == '\\')
                 {
-                    if (i + 1 >= input.Length)
+                    if (i + 1 < input.Length)
                     {
-                        current.Append('\\');
-                        tokenStarted = true;
-                        continue;
-                    }
+                        char next = input[i + 1];
 
-                    char next = input[i + 1];
-
-                    if (next == '"' || next == '\\' || next == '$' || next == '`')
-                    {
-                        current.Append(next);
-                        i++;
+                        if (next == '"' || next == '\\')
+                        {
+                            current.Append(next);
+                            i++;
+                        }
+                        else
+                        {
+                            current.Append('\\');
+                        }
                     }
                     else
                     {
@@ -103,15 +103,16 @@ public static class CommandLineParser
 
             if (c == '\\')
             {
-                if (i + 1 >= input.Length)
+                if (i + 1 < input.Length)
+                {
+                    current.Append(input[i + 1]);
+                    i++;
+                }
+                else
                 {
                     current.Append('\\');
-                    tokenStarted = true;
-                    continue;
                 }
 
-                current.Append(input[i + 1]);
-                i++;
                 tokenStarted = true;
                 continue;
             }
