@@ -30,7 +30,7 @@ public static class BuiltinCommands
         }
         catch (System.Exception)
         {
-            Console.WriteLine("Unhandled exception. System.IO.DirectoryNotFoundException: Could not find a part of the path '/non-existing-directory'.");
+            Console.WriteLine($"Unhandled exception. System.IO.DirectoryNotFoundException: Could not find a part of the path '{path}'.");
         }
     }
 }
