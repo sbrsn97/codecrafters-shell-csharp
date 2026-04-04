@@ -7,7 +7,7 @@ public static class BuiltinCommands
     public static readonly Dictionary<string, Action<CommandLine>> Commands =
         new ()
         {
-            ["echo"] = cmd => Console.WriteLine(cmd),
+            ["echo"] = cmd => Console.WriteLine(string.Join(" ", cmd.Arguments)),
             ["exit"] = cmd => Environment.Exit(0),
             ["pwd"]  = cmd => Console.WriteLine(Directory.GetCurrentDirectory()),
             ["type"] = cmd => PrintCommandType(cmd!),

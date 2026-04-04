@@ -15,24 +15,32 @@ public static class CommandLineParser
         string command = tokens[0];
         List<string> arguments = tokens.Skip(1).ToList();
 
-        return new CommandLine(input, command, arguments);
+        return new CommandLine(input, tokens[0], tokens.Skip(1).ToList());
     }
 
     private static List<string> Tokenize(string input)
     {
         List<string> tokens = new();
         StringBuilder current = new();
-        bool inQuotes = false;
+
+        bool inDoubleQuotes = false;
+        bool inSingleQuotes = false;
 
         foreach (char c in input)
         {
-            if (c == '"')
+            if (c == '"' && !inSingleQuotes)
             {
-                inQuotes = !inQuotes;
+                inDoubleQuotes = !inDoubleQuotes;
                 continue;
             }
 
-            if (char.IsWhiteSpace(c) && !inQuotes)
+            if (c == '\'' && !inDoubleQuotes)
+            {
+                inSingleQuotes = !inSingleQuotes;
+                continue;
+            }
+
+            if (char.IsWhiteSpace(c) && !inDoubleQuotes && !inSingleQuotes)
             {
                 if (current.Length > 0)
                 {
