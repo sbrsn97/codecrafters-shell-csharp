@@ -109,7 +109,7 @@ public static class ExternalCommands
         }
         else
         {
-            start.FileName = executablePath;
+            start.FileName = cmd.Command;
 
             foreach (string arg in cmd.Arguments)
                 start.ArgumentList.Add(arg);
