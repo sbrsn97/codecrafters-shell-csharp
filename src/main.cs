@@ -1,6 +1,3 @@
-using System.Diagnostics;
-using System.Runtime.InteropServices;
-
 class Program
 {
     static void Main(string[] args)
@@ -10,27 +7,25 @@ class Program
 
     static void ReadEvalPrintLoop()
     {
-        while(true)
+        while (true)
         {
             Console.Write("$ ");
             string? userInput = Console.ReadLine();
-            if(userInput == null)
+
+            if (userInput == null)
                 break;
-                
-            string[] splitInput = userInput.Split(new[] { ' ' }, 2);
-            string command = splitInput[0];
-            string fullCommand = userInput;
 
-            if(splitInput.Length > 1)
-                userInput = splitInput[1];
+            CommandLine? parsed = CommandLineParser.Parse(userInput);
+            if (parsed == null)
+                continue;
 
-            if (BuiltinCommands.Commands.TryGetValue(command, out var action))
+            if (BuiltinCommands.Commands.TryGetValue(parsed.Command, out var action))
             {
-                action(userInput);
+                action(parsed);
             }
             else
             {
-                ExternalCommands.SearchForExecutables(fullCommand, true);
+                ExternalCommands.SearchForExecutables(parsed, true);
             }
         }
     }

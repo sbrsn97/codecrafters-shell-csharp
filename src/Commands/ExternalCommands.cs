@@ -5,14 +5,13 @@ using System.Runtime.InteropServices;
 
 public static class ExternalCommands
 {
-    public static bool SearchForExecutables(string input, bool execute)
+    public static bool SearchForExecutables(CommandLine cmd, bool execute)
     {
         bool found = false;
         string? path = Environment.GetEnvironmentVariable("PATH");
         string[] directories = path!.Split(Path.PathSeparator);
-        string[] splitInput = input.Split(new[] { ' ' }, 2);
 
-        string programName = splitInput[0];
+        string programName = cmd.Command;
 
         foreach (string directory in directories)
         {
@@ -21,15 +20,17 @@ public static class ExternalCommands
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 string[] extensions = { ".exe", ".bat", ".cmd", ".com" };
+
                 foreach (var ext in extensions)
                 {
                     string candidate = fullPath + ext;
                     if (File.Exists(candidate))
                     {
                         if (execute)
-                            Execute(input);
+                            Execute(cmd);
                         else
                             PrintTypeFound(programName, candidate);
+
                         found = true;
                         break;
                     }
@@ -47,21 +48,24 @@ public static class ExternalCommands
                     if (isExecutable)
                     {
                         if (execute)
-                            Execute(input);
+                            Execute(cmd);
                         else
                             PrintTypeFound(programName, fullPath);
+
                         found = true;
                     }
                 }
             }
 
-            if (found) break;
+            if (found)
+                break;
         }
 
         if (!found)
         {
-            Console.WriteLine(execute ? $"{programName}: command not found"
-                                      : $"{programName}: not found");
+            Console.WriteLine(execute
+                ? $"{programName}: command not found"
+                : $"{programName}: not found");
         }
 
         return found;
@@ -72,29 +76,27 @@ public static class ExternalCommands
         Console.WriteLine($"{command} is {path}");
     }
 
-    private static void Execute(string fullCommandLine)
+    private static void Execute(CommandLine cmd)
     {
         ProcessStartInfo start = new ProcessStartInfo();
 
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
             start.FileName = "cmd.exe";
-            start.Arguments = $"/C {fullCommandLine}";
+            start.Arguments = $"/C {cmd.RawInput}";
         }
         else
         {
             start.FileName = "/bin/sh";
-            start.Arguments = $"-c \"{fullCommandLine}\"";
+            start.Arguments = $"-c \"{cmd.RawInput.Replace("\"", "\\\"")}\"";
         }
 
         start.RedirectStandardOutput = true;
         start.UseShellExecute = false;
 
-        using (Process proc = Process.Start(start)!)
-        {
-            string output = proc.StandardOutput.ReadToEnd();
-            Console.Write(output);
-            proc.WaitForExit();
-        }
+        using Process proc = Process.Start(start)!;
+        string output = proc.StandardOutput.ReadToEnd();
+        Console.Write(output);
+        proc.WaitForExit();
     }
 }
