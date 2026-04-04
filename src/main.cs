@@ -42,7 +42,7 @@ class Program
             }
             else
             {
-                bool found = ExternalCommands.SearchForExecutables(parsed, true, stdout, stderr);
+                bool found = ExternalCommands.ExecuteIfFound(parsed, stdout, stderr);
 
                 if (!found && OperatingSystem.IsWindows() && parsed.Command == "cat")
                 {

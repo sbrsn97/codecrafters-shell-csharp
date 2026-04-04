@@ -32,20 +32,12 @@ public static class BuiltinCommands
         }
         else
         {
-            ExternalCommands.SearchForExecutables(
-                new CommandLine(
-                    target,
-                    target,
-                    new List<string>(),
-                    null,
-                    false,
-                    null,
-                    false
-                ),
-                false,
-                stdout,
-                stderr
-            );
+            string? path = ExternalCommands.FindExecutablePath(target);
+
+            if (path is not null)
+                stdout.WriteLine($"{target} is {path}");
+            else
+                stderr.WriteLine($"{target}: not found");
         }
     }
 

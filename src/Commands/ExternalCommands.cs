@@ -5,71 +5,63 @@ using System.Runtime.InteropServices;
 
 public static class ExternalCommands
 {
-    public static bool SearchForExecutables(CommandLine cmd, bool execute, TextWriter stdout, TextWriter stderr)
+    public static string? FindExecutablePath(string commandName)
     {
-        bool found = false;
         string? path = Environment.GetEnvironmentVariable("PATH");
-        string[] directories = path!.Split(Path.PathSeparator);
+        if (string.IsNullOrWhiteSpace(path))
+            return null;
 
-        string programName = cmd.Command;
+        string[] directories = path.Split(Path.PathSeparator, StringSplitOptions.RemoveEmptyEntries);
 
         foreach (string directory in directories)
         {
-            string fullPath = Path.Combine(directory, programName);
-
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                string[] extensions = { ".exe", ".bat", ".cmd", ".com" };
-
-                foreach (var ext in extensions)
-                {
-                    string candidate = fullPath + ext;
-                    if (File.Exists(candidate))
-                    {
-                        if (execute)
-                            Execute(cmd, stdout, stderr);
-                        else
-                            PrintTypeFound(programName, candidate, stdout);
-
-                        found = true;
-                        break;
-                    }
-                }
-            }
-            else
-            {
-                if (File.Exists(fullPath))
-                {
-                    var mode = File.GetUnixFileMode(fullPath);
-                    bool isExecutable =
-                        mode.HasFlag(UnixFileMode.UserExecute) ||
-                        mode.HasFlag(UnixFileMode.GroupExecute) ||
-                        mode.HasFlag(UnixFileMode.OtherExecute);
-
-                    if (isExecutable)
-                    {
-                        if (execute)
-                            Execute(cmd, stdout, stderr);
-                        else
-                            PrintTypeFound(programName, fullPath, stdout);
-
-                        found = true;
-                    }
-                }
-            }
-
-            if (found)
-                break;
+            string? found = FindExecutableInDirectory(directory, commandName);
+            if (found is not null)
+                return found;
         }
 
-        if (!found)
+        return null;
+    }
+    private static string? FindExecutableInDirectory(string directory, string commandName)
+    {
+        string fullPath = Path.Combine(directory, commandName);
+
+        if (OperatingSystem.IsWindows())
         {
-            stderr.WriteLine(execute
-                ? $"{programName}: command not found"
-                : $"{programName}: not found");
+            string[] extensions = { ".exe", ".bat", ".cmd", ".com" };
+
+            foreach (var ext in extensions)
+            {
+                string candidate = fullPath + ext;
+                if (File.Exists(candidate))
+                    return candidate;
+            }
+
+            return null;
         }
 
-        return found;
+        if (!File.Exists(fullPath))
+            return null;
+
+        var mode = File.GetUnixFileMode(fullPath);
+        bool isExecutable =
+            mode.HasFlag(UnixFileMode.UserExecute) ||
+            mode.HasFlag(UnixFileMode.GroupExecute) ||
+            mode.HasFlag(UnixFileMode.OtherExecute);
+
+        return isExecutable ? fullPath : null;
+    }
+    public static bool ExecuteIfFound(CommandLine cmd, TextWriter stdout, TextWriter stderr)
+    {
+        string? executablePath = FindExecutablePath(cmd.Command);
+        if (executablePath is null)
+        {
+            stderr.WriteLine($"{cmd.Command}: command not found");
+            return false;
+        }
+
+        Execute(cmd, stdout, stderr);
+        return true;
     }
 
     private static void PrintTypeFound(string command, string path, TextWriter stdout)
