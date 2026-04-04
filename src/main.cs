@@ -35,6 +35,9 @@ class Program
                 case "type":
                     PrintCommandType(userInput);
                     break;
+                case "pwd":
+                    Console.WriteLine(GetCurrentWorkingDirectory());
+                    break;
                 default:
                     SearchForExecutables(fullCommand, true);
                     break;
@@ -145,6 +148,11 @@ class Program
                 Console.Write(output);
                 proc.WaitForExit();
             }
+        }
+
+        static string GetCurrentWorkingDirectory()
+        {
+            return Process.GetCurrentProcess().MainModule!.FileName;
         }
     }
 }
