@@ -5,12 +5,12 @@ class Program
 {
     static void Main(string[] args)
     {
-        if (args.Length > 0)
+        if (args.Length > 1)
         {
             Console.WriteLine($"Program was passed {args.Length} args (including program name).");
             return;
         }
-        
+
         ReadEvalPrintLoop();
     }
 
