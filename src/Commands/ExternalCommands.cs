@@ -82,7 +82,7 @@ public static class ExternalCommands
     {
         var start = new ProcessStartInfo
         {
-            FileName = executablePath,
+            FileName = cmd.Command,
             UseShellExecute = false,
             RedirectStandardOutput = true,
             RedirectStandardError = false
