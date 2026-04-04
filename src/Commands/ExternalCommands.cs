@@ -27,7 +27,7 @@ public static class ExternalCommands
                     if (File.Exists(candidate))
                     {
                         if (execute)
-                            Execute(cmd);
+                            Execute(candidate, cmd);
                         else
                             PrintTypeFound(programName, candidate);
 
@@ -41,14 +41,15 @@ public static class ExternalCommands
                 if (File.Exists(fullPath))
                 {
                     var mode = File.GetUnixFileMode(fullPath);
-                    bool isExecutable = mode.HasFlag(UnixFileMode.UserExecute) ||
-                                        mode.HasFlag(UnixFileMode.GroupExecute) ||
-                                        mode.HasFlag(UnixFileMode.OtherExecute);
+                    bool isExecutable =
+                        mode.HasFlag(UnixFileMode.UserExecute) ||
+                        mode.HasFlag(UnixFileMode.GroupExecute) ||
+                        mode.HasFlag(UnixFileMode.OtherExecute);
 
                     if (isExecutable)
                     {
                         if (execute)
-                            Execute(cmd);
+                            Execute(fullPath, cmd);
                         else
                             PrintTypeFound(programName, fullPath);
 
@@ -76,27 +77,55 @@ public static class ExternalCommands
         Console.WriteLine($"{command} is {path}");
     }
 
-    private static void Execute(CommandLine cmd)
+    private static void Execute(string executablePath, CommandLine cmd)
     {
-        ProcessStartInfo start = new ProcessStartInfo();
+        ProcessStartInfo start = new ProcessStartInfo
+        {
+            UseShellExecute = false,
+            RedirectStandardOutput = true,
+            RedirectStandardError = true
+        };
 
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
-            start.FileName = "cmd.exe";
-            start.Arguments = $"/C {cmd.RawInput}";
+            string ext = Path.GetExtension(executablePath).ToLowerInvariant();
+
+            if (ext == ".bat" || ext == ".cmd")
+            {
+                start.FileName = "cmd.exe";
+                start.ArgumentList.Add("/C");
+                start.ArgumentList.Add(executablePath);
+
+                foreach (string arg in cmd.Arguments)
+                    start.ArgumentList.Add(arg);
+            }
+            else
+            {
+                start.FileName = executablePath;
+
+                foreach (string arg in cmd.Arguments)
+                    start.ArgumentList.Add(arg);
+            }
         }
         else
         {
-            start.FileName = "/bin/sh";
-            start.Arguments = $"-c \"{cmd.RawInput.Replace("\"", "\\\"")}\"";
+            start.FileName = executablePath;
+
+            foreach (string arg in cmd.Arguments)
+                start.ArgumentList.Add(arg);
         }
 
-        start.RedirectStandardOutput = true;
-        start.UseShellExecute = false;
-
         using Process proc = Process.Start(start)!;
-        string output = proc.StandardOutput.ReadToEnd();
-        Console.Write(output);
+
+        string stdout = proc.StandardOutput.ReadToEnd();
+        string stderr = proc.StandardError.ReadToEnd();
+
         proc.WaitForExit();
+
+        if (!string.IsNullOrEmpty(stdout))
+            Console.Write(stdout);
+
+        if (!string.IsNullOrEmpty(stderr))
+            Console.Write(stderr);
     }
 }
