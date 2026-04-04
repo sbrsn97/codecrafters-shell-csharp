@@ -5,12 +5,6 @@ class Program
 {
     static void Main(string[] args)
     {
-        if (args.Length > 1)
-        {
-            Console.WriteLine($"Program was passed {args.Length} args (including program name).");
-            return;
-        }
-
         ReadEvalPrintLoop();
     }
 
@@ -36,7 +30,7 @@ class Program
             }
             else
             {
-                ExternalCommands.SearchForExecutables(userInput, true);
+                ExternalCommands.SearchForExecutables(fullCommand, true);
             }
         }
     }
