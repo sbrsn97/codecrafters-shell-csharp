@@ -3,5 +3,7 @@ public enum TokenType
     Word,
     RedirectStdout,
     RedirectFdStdout,
-    RedirectStderr
+    RedirectStderr,
+    AppendStdout,
+    AppendFdStdout 
 }

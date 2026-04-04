@@ -40,13 +40,9 @@ public static class CommandLineParser
             if (inSingleQuotes)
             {
                 if (c == '\'')
-                {
                     inSingleQuotes = false;
-                }
                 else
-                {
                     current.Append(c);
-                }
 
                 tokenStarted = true;
                 continue;
@@ -127,6 +123,22 @@ public static class CommandLineParser
                 continue;
             }
 
+            if (c == '1' && i + 2 < input.Length && input[i + 1] == '>' && input[i + 2] == '>')
+            {
+                FlushWord();
+                tokens.Add(new Token(TokenType.AppendFdStdout, "1>>"));
+                i += 2;
+                continue;
+            }
+
+            if (c == '>' && i + 1 < input.Length && input[i + 1] == '>')
+            {
+                FlushWord();
+                tokens.Add(new Token(TokenType.AppendStdout, ">>"));
+                i++;
+                continue;
+            }
+
             if (c == '1' && i + 1 < input.Length && input[i + 1] == '>')
             {
                 FlushWord();
@@ -165,6 +177,7 @@ public static class CommandLineParser
     {
         List<string> words = new();
         string? stdoutRedirectPath = null;
+        bool stdoutAppend = false;
         string? stderrRedirectPath = null;
 
         for (int i = 0; i < tokens.Count; i++)
@@ -184,6 +197,19 @@ public static class CommandLineParser
                     throw new InvalidOperationException("Missing redirection target");
 
                 stdoutRedirectPath = tokens[i + 1].Value;
+                stdoutAppend = false;
+                i++;
+                continue;
+            }
+
+            if (token.Type == TokenType.AppendStdout ||
+                token.Type == TokenType.AppendFdStdout)
+            {
+                if (i + 1 >= tokens.Count || tokens[i + 1].Type != TokenType.Word)
+                    throw new InvalidOperationException("Missing redirection target");
+
+                stdoutRedirectPath = tokens[i + 1].Value;
+                stdoutAppend = true;
                 i++;
                 continue;
             }
@@ -210,6 +236,7 @@ public static class CommandLineParser
             command,
             arguments,
             stdoutRedirectPath,
+            stdoutAppend,
             stderrRedirectPath);
     }
 }

@@ -16,18 +16,25 @@ public static class OutputWriterFactory
 {
     public static OutputTargets Create(CommandLine cmd)
     {
-        TextWriter stdout = CreateWriter(cmd.StdoutRedirectPath, Console.Out);
-        TextWriter stderr = CreateWriter(cmd.StderrRedirectPath, Console.Error);
+        TextWriter stdout = CreateWriter(
+            cmd.StdoutRedirectPath,
+            Console.Out,
+            cmd.StdoutAppend);
+
+        TextWriter stderr = CreateWriter(
+            cmd.StderrRedirectPath,
+            Console.Error,
+            append: false);
 
         return new OutputTargets(stdout, stderr);
     }
 
-    private static TextWriter CreateWriter(string? path, TextWriter fallback)
+    private static TextWriter CreateWriter(string? path, TextWriter fallback, bool append)
     {
         if (string.IsNullOrWhiteSpace(path))
             return new NonClosingTextWriter(fallback);
 
-        return new StreamWriter(path, append: false)
+        return new StreamWriter(path, append)
         {
             AutoFlush = true
         };

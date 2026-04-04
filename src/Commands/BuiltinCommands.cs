@@ -33,10 +33,18 @@ public static class BuiltinCommands
         else
         {
             ExternalCommands.SearchForExecutables(
-                new CommandLine(target, target, new List<string>(), null, null),
+                new CommandLine(
+                    target,
+                    target,
+                    new List<string>(),
+                    null,
+                    false,
+                    null
+                ),
                 false,
                 stdout,
-                stderr);
+                stderr
+            );
         }
     }
 
