@@ -36,10 +36,7 @@ class Program
                     PrintCommandType(userInput);
                     break;
                 default:
-                    if (!SearchForExecutables(fullCommand, true))
-                    {
-                        Console.WriteLine($"{command}: command not found");
-                    }
+                    SearchForExecutables(fullCommand, true);
                     break;
             }
         }
@@ -59,7 +56,7 @@ class Program
             bool found = false;
             string? path = Environment.GetEnvironmentVariable("PATH");
             string[] directories = path!.Split(Path.PathSeparator);
-            string[] splitInput = input.Split(new[] { ' '}, 2);
+            string[] splitInput = input.Split(new[] { ' ' }, 2);
             
             string programName = splitInput[0];
 
@@ -127,20 +124,26 @@ class Program
         static void Execute(string fullCommandLine)
         {
             ProcessStartInfo start = new ProcessStartInfo();
-            start.FileName = "/bin/sh";
-            start.Arguments = $"-c \"{fullCommandLine}\"";
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                start.FileName = "cmd.exe";
+                start.Arguments = $"/C {fullCommandLine}";
+            }
+            else
+            {
+                start.FileName = "/bin/sh";
+                start.Arguments = $"-c \"{fullCommandLine}\"";
+            }
+
             start.RedirectStandardOutput = true;
             start.UseShellExecute = false;
-
-            int exitCode;
 
             using (Process proc = Process.Start(start)!)
             {
                 string output = proc.StandardOutput.ReadToEnd();
                 Console.Write(output);
                 proc.WaitForExit();
-
-                exitCode = proc.ExitCode;
             }
         }
     }
