@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 
 public static class BuiltinCommands
@@ -10,7 +9,7 @@ public static class BuiltinCommands
         {
             ["echo"] = arg => Console.WriteLine(arg),
             ["exit"] = arg => Environment.Exit(0),
-            ["pwd"]  = arg => Console.WriteLine(Process.GetCurrentProcess().MainModule!.FileName),
+            ["pwd"]  = arg => Console.WriteLine(Directory.GetCurrentDirectory()),
             ["type"] = arg => PrintCommandType(arg!)
         };
 
