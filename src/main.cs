@@ -25,7 +25,12 @@ class Program
             }
             else
             {
-                ExternalCommands.SearchForExecutables(parsed, true);
+                bool found = ExternalCommands.SearchForExecutables(parsed, true);
+
+                if (!found && OperatingSystem.IsWindows() && parsed.Command == "cat")
+                {
+                    BuiltinCommands.RunCat(parsed);
+                }
             }
         }
     }

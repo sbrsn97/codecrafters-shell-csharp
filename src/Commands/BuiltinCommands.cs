@@ -12,7 +12,6 @@ public static class BuiltinCommands
             ["pwd"]  = cmd => Console.WriteLine(Directory.GetCurrentDirectory()),
             ["type"] = cmd => PrintCommandType(cmd!),
             ["cd"]   = cmd => ChangeDirectory(cmd),
-            ["cat"]  = cmd => CatFile(cmd),
             ["ls"] = cmd => ListDirectory(cmd),
         };
 
@@ -84,6 +83,10 @@ public static class BuiltinCommands
         return path;
     }
 
+    public static void RunCat(CommandLine cmd)
+    {
+        CatFile(cmd);
+    }
     private static void CatFile(CommandLine cmd)
     {
         if (cmd.Arguments.Count == 0)
