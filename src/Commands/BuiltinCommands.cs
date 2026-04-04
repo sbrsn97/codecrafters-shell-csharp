@@ -117,15 +117,17 @@ public static class BuiltinCommands
 
     private static void ListDirectory(CommandLine cmd, TextWriter stdout, TextWriter stderr)
     {
-        if (cmd.Arguments.Count > 1)
+        var args = cmd.Arguments.Where(a => a != "-1").ToList();
+
+        if (args.Count > 1)
         {
             stderr.WriteLine("ls: too many arguments");
             return;
         }
 
-        string path = cmd.Arguments.Count == 0
+        string path = args.Count == 0
             ? Directory.GetCurrentDirectory()
-            : ExpandHomePath(cmd.Arguments[0]);
+            : ExpandHomePath(args[0]);
 
         try
         {
@@ -137,7 +139,7 @@ public static class BuiltinCommands
 
             if (!Directory.Exists(path))
             {
-                stderr.WriteLine($"ls: cannot access '{cmd.Arguments[0]}': No such file or directory");
+                stderr.WriteLine($"ls: {args[0]}: No such file or directory");
                 return;
             }
 
@@ -154,11 +156,7 @@ public static class BuiltinCommands
         }
         catch (UnauthorizedAccessException)
         {
-            stderr.WriteLine($"ls: cannot open directory '{path}': Permission denied");
-        }
-        catch (IOException)
-        {
-            stderr.WriteLine($"ls: cannot access '{path}'");
+            stderr.WriteLine($"ls: {path}: Permission denied");
         }
     }
 }
