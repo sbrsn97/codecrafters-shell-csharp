@@ -58,14 +58,16 @@ class Program
         var buffer = new StringBuilder();
 
         Console.Write(prompt);
-        int promptTop = Console.CursorTop;
+        Console.Out.Flush();
 
         while (true)
         {
-            ConsoleKeyInfo keyInfo = Console.ReadKey(intercept: false);
+            ConsoleKeyInfo keyInfo = Console.ReadKey(intercept: true);
 
             if (keyInfo.Key == ConsoleKey.Enter)
             {
+                Console.WriteLine();
+                Console.Out.Flush();
                 return buffer.ToString();
             }
 
@@ -74,16 +76,16 @@ class Program
                 string current = buffer.ToString();
                 string completed = TryAutocompleteBuiltin(current);
 
-                if (completed != current)
+                if (completed == current)
                 {
-                    buffer.Clear();
-                    buffer.Append(completed);
-                    RedrawInput(prompt, completed, promptTop);
+                    Console.Write('\a');
+                    Console.Out.Flush();
                 }
                 else
                 {
-                    RedrawInput(prompt, current, promptTop);
-                    Console.Write('\a');
+                    string suffix = completed.Substring(current.Length);
+                    buffer.Append(suffix);
+                    Console.Write(suffix);
                     Console.Out.Flush();
                 }
 
@@ -95,6 +97,8 @@ class Program
                 if (buffer.Length > 0)
                 {
                     buffer.Remove(buffer.Length - 1, 1);
+                    Console.Write("\b \b");
+                    Console.Out.Flush();
                 }
 
                 continue;
@@ -103,25 +107,10 @@ class Program
             if (!char.IsControl(keyInfo.KeyChar))
             {
                 buffer.Append(keyInfo.KeyChar);
+                Console.Write(keyInfo.KeyChar);
+                Console.Out.Flush();
             }
         }
-    }
-
-    static void RedrawInput(string prompt, string text, int promptTop)
-    {
-        Console.SetCursorPosition(0, promptTop);
-
-        string fullLine = prompt + text;
-        Console.Write(fullLine);
-
-        int remaining = Math.Max(0, Console.BufferWidth - fullLine.Length);
-        if (remaining > 0)
-        {
-            Console.Write(new string(' ', remaining));
-        }
-
-        Console.SetCursorPosition(fullLine.Length, promptTop);
-        Console.Out.Flush();
     }
 
     static string TryAutocompleteBuiltin(string input)
