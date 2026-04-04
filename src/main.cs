@@ -1,4 +1,5 @@
 using System.Text;
+using System.Linq;
 
 class Program
 {
@@ -11,7 +12,6 @@ class Program
     {
         while (true)
         {
-            Console.Write("$ ");
             string? userInput = ReadInputWithTabCompletion();
 
             if (userInput == null)
@@ -54,7 +54,11 @@ class Program
 
     static string? ReadInputWithTabCompletion()
     {
+        const string prompt = "$ ";
         var buffer = new StringBuilder();
+
+        Console.Write(prompt);
+        int promptTop = Console.CursorTop;
 
         while (true)
         {
@@ -69,14 +73,17 @@ class Program
             if (keyInfo.Key == ConsoleKey.Tab)
             {
                 string current = buffer.ToString();
+                string completed = TryAutocompleteBuiltin(current);
 
-                string? completed = TryAutocompleteBuiltin(current);
-                if (completed is not null && completed != current)
+                if (completed != current)
                 {
-                    ClearCurrentConsoleInput(buffer);
                     buffer.Clear();
                     buffer.Append(completed);
-                    Console.Write(buffer.ToString());
+                    RedrawInput(prompt, buffer.ToString(), promptTop);
+                }
+                else
+                {
+                    Console.Write("\a");
                 }
 
                 continue;
@@ -101,23 +108,46 @@ class Program
         }
     }
 
-    static string? TryAutocompleteBuiltin(string input)
+    static void RedrawInput(string prompt, string text, int promptTop)
     {
+        Console.SetCursorPosition(0, promptTop);
+
+        string fullLine = prompt + text;
+        Console.Write(fullLine);
+
+        int remaining = Console.BufferWidth - fullLine.Length;
+        if (remaining > 0)
+        {
+            Console.Write(new string(' ', remaining));
+        }
+
+        Console.SetCursorPosition(fullLine.Length, promptTop);
+    }
+
+    static string TryAutocompleteBuiltin(string input)
+    {
+        if (string.IsNullOrEmpty(input))
+            return input;
+
+        if (input.EndsWith(' '))
+            return input;
+
+        if (input.Contains(' '))
+            return input;
+
         var matches = BuiltinCommands.Commands.Keys
             .Where(x => x.StartsWith(input, StringComparison.Ordinal))
             .OrderBy(x => x)
             .ToList();
 
-        if (matches.Count == 1)
-            return matches[0] + " ";
+        if (matches.Count != 1)
+            return input;
 
-        return input;
-    }
-    static void ClearCurrentConsoleInput(StringBuilder buffer)
-    {
-        for (int i = 0; i < buffer.Length; i++)
-        {
-            Console.Write("\b \b");
-        }
+        string match = matches[0];
+
+        if (input == match)
+            return match + " ";
+
+        return match + " ";
     }
 }
