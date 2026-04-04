@@ -1,39 +1,45 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 public static class BuiltinCommands
 {
-    public static readonly Dictionary<string, Action<CommandLine>> Commands =
-        new ()
+    public static readonly Dictionary<string, Action<CommandLine, TextWriter>> Commands =
+        new()
         {
-            ["echo"] = cmd => Console.WriteLine(string.Join(' ', cmd.Arguments)),
-            ["exit"] = cmd => Environment.Exit(0),
-            ["pwd"]  = cmd => Console.WriteLine(Directory.GetCurrentDirectory()),
-            ["type"] = cmd => PrintCommandType(cmd!),
-            ["cd"]   = cmd => ChangeDirectory(cmd),
-            ["ls"] = cmd => ListDirectory(cmd),
+            ["echo"] = (cmd, output) => output.WriteLine(string.Join(' ', cmd.Arguments)),
+            ["pwd"]  = (cmd, output) => output.WriteLine(Directory.GetCurrentDirectory()),
+            ["exit"] = (cmd, output) => Environment.Exit(0),
+            ["type"] = (cmd, output) => PrintCommandType(cmd, output),
+            ["cd"]   = (cmd, output) => ChangeDirectory(cmd, output),
+            ["ls"]   = (cmd, output) => ListDirectory(cmd, output)
         };
 
-    private static void PrintCommandType(CommandLine cmd)
+    private static void PrintCommandType(CommandLine cmd, TextWriter output)
     {
         if (cmd.Arguments.Count == 0)
         {
-            Console.WriteLine("type: missing argument");
+            output.WriteLine("type: missing argument");
             return;
         }
 
         string target = cmd.Arguments[0];
 
         if (Commands.ContainsKey(target))
-            Console.WriteLine($"{target} is a shell builtin");
+        {
+            output.WriteLine($"{target} is a shell builtin");
+        }
         else
+        {
             ExternalCommands.SearchForExecutables(
-                new CommandLine(target, target, new List<string>()),
-                false);
+                new CommandLine(target, target, new List<string>(), null),
+                false,
+                output);
+        }
     }
 
-    private static void ChangeDirectory(CommandLine cmd)
+    private static void ChangeDirectory(CommandLine cmd, TextWriter output)
     {
         if (cmd.Arguments.Count == 0)
         {
@@ -44,7 +50,7 @@ public static class BuiltinCommands
 
         if (cmd.Arguments.Count > 1)
         {
-            Console.WriteLine("cd: too many arguments");
+            output.WriteLine("cd: too many arguments");
             return;
         }
 
@@ -56,15 +62,15 @@ public static class BuiltinCommands
         }
         catch (DirectoryNotFoundException)
         {
-            Console.WriteLine($"cd: {cmd.Arguments[0]}: No such file or directory");
+            output.WriteLine($"cd: {cmd.Arguments[0]}: No such file or directory");
         }
         catch (UnauthorizedAccessException)
         {
-            Console.WriteLine($"cd: {cmd.Arguments[0]}: Permission denied");
+            output.WriteLine($"cd: {cmd.Arguments[0]}: Permission denied");
         }
         catch (IOException)
         {
-            Console.WriteLine($"cd: {cmd.Arguments[0]}: Not a directory");
+            output.WriteLine($"cd: {cmd.Arguments[0]}: Not a directory");
         }
     }
 
@@ -83,15 +89,16 @@ public static class BuiltinCommands
         return path;
     }
 
-    public static void RunCat(CommandLine cmd)
+    public static void RunCat(CommandLine cmd, TextWriter output)
     {
-        CatFile(cmd);
+        CatFile(cmd, output);
     }
-    private static void CatFile(CommandLine cmd)
+
+    private static void CatFile(CommandLine cmd, TextWriter output)
     {
         if (cmd.Arguments.Count == 0)
         {
-            Console.WriteLine("cat: missing file operand");
+            output.WriteLine("cat: missing file operand");
             return;
         }
 
@@ -99,19 +106,19 @@ public static class BuiltinCommands
         {
             if (!File.Exists(file))
             {
-                Console.WriteLine($"cat: {file}: No such file or directory");
+                output.WriteLine($"cat: {file}: No such file or directory");
                 continue;
             }
 
-            Console.Write(File.ReadAllText(file));
+            output.Write(File.ReadAllText(file));
         }
     }
 
-    private static void ListDirectory(CommandLine cmd)
+    private static void ListDirectory(CommandLine cmd, TextWriter output)
     {
         if (cmd.Arguments.Count > 1)
         {
-            Console.WriteLine("ls: too many arguments");
+            output.WriteLine("ls: too many arguments");
             return;
         }
 
@@ -123,13 +130,13 @@ public static class BuiltinCommands
         {
             if (File.Exists(path))
             {
-                Console.WriteLine(Path.GetFileName(path));
+                output.WriteLine(Path.GetFileName(path));
                 return;
             }
 
             if (!Directory.Exists(path))
             {
-                Console.WriteLine($"ls: cannot access '{cmd.Arguments[0]}': No such file or directory");
+                output.WriteLine($"ls: cannot access '{cmd.Arguments[0]}': No such file or directory");
                 return;
             }
 
@@ -141,16 +148,16 @@ public static class BuiltinCommands
 
             foreach (var entry in entries)
             {
-                Console.WriteLine(entry);
+                output.WriteLine(entry);
             }
         }
         catch (UnauthorizedAccessException)
         {
-            Console.WriteLine($"ls: cannot open directory '{path}': Permission denied");
+            output.WriteLine($"ls: cannot open directory '{path}': Permission denied");
         }
         catch (IOException)
         {
-            Console.WriteLine($"ls: cannot access '{path}'");
+            output.WriteLine($"ls: cannot access '{path}'");
         }
     }
 }

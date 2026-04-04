@@ -29,17 +29,19 @@ class Program
             if (parsed == null)
                 continue;
 
+            using TextWriter output = OutputWriterFactory.CreateOutputWriter(parsed);
+
             if (BuiltinCommands.Commands.TryGetValue(parsed.Command, out var action))
             {
-                action(parsed);
+                action(parsed, output);
             }
             else
             {
-                bool found = ExternalCommands.SearchForExecutables(parsed, true);
+                bool found = ExternalCommands.SearchForExecutables(parsed, true, output);
 
                 if (!found && OperatingSystem.IsWindows() && parsed.Command == "cat")
                 {
-                    BuiltinCommands.RunCat(parsed);
+                    BuiltinCommands.RunCat(parsed, output);
                 }
             }
         }

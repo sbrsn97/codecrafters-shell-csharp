@@ -7,32 +7,28 @@ public static class CommandLineParser
         if (string.IsNullOrWhiteSpace(input))
             return null;
 
-        List<string> tokens = Tokenize(input);
-
+        List<Token> tokens = Lex(input);
         if (tokens.Count == 0)
             return null;
 
-        string command = tokens[0];
-        List<string> arguments = tokens.Skip(1).ToList();
-
-        return new CommandLine(input, command, arguments);
+        return ParseTokens(input, tokens);
     }
 
-    private static List<string> Tokenize(string input)
+    private static List<Token> Lex(string input)
     {
-        List<string> tokens = new();
+        List<Token> tokens = new();
         StringBuilder current = new();
 
         bool inSingleQuotes = false;
         bool inDoubleQuotes = false;
         bool tokenStarted = false;
 
-        void FlushToken()
+        void FlushWord()
         {
             if (!tokenStarted)
                 return;
 
-            tokens.Add(current.ToString());
+            tokens.Add(new Token(TokenType.Word, current.ToString()));
             current.Clear();
             tokenStarted = false;
         }
@@ -97,7 +93,21 @@ public static class CommandLineParser
 
             if (char.IsWhiteSpace(c))
             {
-                FlushToken();
+                FlushWord();
+                continue;
+            }
+
+            if (c == '\'')
+            {
+                inSingleQuotes = true;
+                tokenStarted = true;
+                continue;
+            }
+
+            if (c == '"')
+            {
+                inDoubleQuotes = true;
+                tokenStarted = true;
                 continue;
             }
 
@@ -117,17 +127,18 @@ public static class CommandLineParser
                 continue;
             }
 
-            if (c == '\'')
+            if (c == '1' && i + 1 < input.Length && input[i + 1] == '>')
             {
-                inSingleQuotes = true;
-                tokenStarted = true;
+                FlushWord();
+                tokens.Add(new Token(TokenType.RedirectFdStdout, "1>"));
+                i++;
                 continue;
             }
 
-            if (c == '"')
+            if (c == '>')
             {
-                inDoubleQuotes = true;
-                tokenStarted = true;
+                FlushWord();
+                tokens.Add(new Token(TokenType.RedirectStdout, ">"));
                 continue;
             }
 
@@ -138,7 +149,42 @@ public static class CommandLineParser
         if (inSingleQuotes || inDoubleQuotes)
             throw new InvalidOperationException("Unterminated quote");
 
-        FlushToken();
+        FlushWord();
         return tokens;
+    }
+
+    private static CommandLine ParseTokens(string rawInput, List<Token> tokens)
+    {
+        List<string> words = new();
+        string? stdoutRedirectPath = null;
+
+        for (int i = 0; i < tokens.Count; i++)
+        {
+            Token token = tokens[i];
+
+            if (token.Type == TokenType.Word)
+            {
+                words.Add(token.Value);
+                continue;
+            }
+
+            if (token.Type == TokenType.RedirectStdout || token.Type == TokenType.RedirectFdStdout)
+            {
+                if (i + 1 >= tokens.Count || tokens[i + 1].Type != TokenType.Word)
+                    throw new InvalidOperationException("Missing redirection target");
+
+                stdoutRedirectPath = tokens[i + 1].Value;
+                i++;
+                continue;
+            }
+        }
+
+        if (words.Count == 0)
+            return null!;
+
+        string command = words[0];
+        List<string> arguments = words.Skip(1).ToList();
+
+        return new CommandLine(rawInput, command, arguments, stdoutRedirectPath);
     }
 }

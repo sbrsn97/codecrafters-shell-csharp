@@ -1,11 +1,12 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Runtime.InteropServices;
 
 public static class ExternalCommands
 {
-    public static bool SearchForExecutables(CommandLine cmd, bool execute)
+    public static bool SearchForExecutables(CommandLine cmd, bool execute, TextWriter output)
     {
         bool found = false;
         string? path = Environment.GetEnvironmentVariable("PATH");
@@ -27,9 +28,9 @@ public static class ExternalCommands
                     if (File.Exists(candidate))
                     {
                         if (execute)
-                            Execute(candidate, cmd);
+                            Execute(candidate, cmd, output);
                         else
-                            PrintTypeFound(programName, candidate);
+                            PrintTypeFound(programName, candidate, output);
 
                         found = true;
                         break;
@@ -49,9 +50,9 @@ public static class ExternalCommands
                     if (isExecutable)
                     {
                         if (execute)
-                            Execute(fullPath, cmd);
+                            Execute(fullPath, cmd, output);
                         else
-                            PrintTypeFound(programName, fullPath);
+                            PrintTypeFound(programName, fullPath, output);
 
                         found = true;
                     }
@@ -64,7 +65,7 @@ public static class ExternalCommands
 
         if (!found)
         {
-            Console.WriteLine(execute
+            output.WriteLine(execute
                 ? $"{programName}: command not found"
                 : $"{programName}: not found");
         }
@@ -72,60 +73,29 @@ public static class ExternalCommands
         return found;
     }
 
-    private static void PrintTypeFound(string command, string path)
+    private static void PrintTypeFound(string command, string path, TextWriter output)
     {
-        Console.WriteLine($"{command} is {path}");
+        output.WriteLine($"{command} is {path}");
     }
 
-    private static void Execute(string executablePath, CommandLine cmd)
+    private static void Execute(string executablePath, CommandLine cmd, TextWriter output)
     {
-        ProcessStartInfo start = new ProcessStartInfo
+        var start = new ProcessStartInfo
         {
+            FileName = executablePath,
             UseShellExecute = false,
             RedirectStandardOutput = true,
-            RedirectStandardError = true
+            RedirectStandardError = false
         };
 
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        foreach (string arg in cmd.Arguments)
         {
-            string ext = Path.GetExtension(executablePath).ToLowerInvariant();
-
-            if (ext == ".bat" || ext == ".cmd")
-            {
-                start.FileName = "cmd.exe";
-                start.ArgumentList.Add("/C");
-                start.ArgumentList.Add(executablePath);
-
-                foreach (string arg in cmd.Arguments)
-                    start.ArgumentList.Add(arg);
-            }
-            else
-            {
-                start.FileName = executablePath;
-
-                foreach (string arg in cmd.Arguments)
-                    start.ArgumentList.Add(arg);
-            }
-        }
-        else
-        {
-            start.FileName = cmd.Command;
-
-            foreach (string arg in cmd.Arguments)
-                start.ArgumentList.Add(arg);
+            start.ArgumentList.Add(arg);
         }
 
         using Process proc = Process.Start(start)!;
-
         string stdout = proc.StandardOutput.ReadToEnd();
-        string stderr = proc.StandardError.ReadToEnd();
-
+        output.Write(stdout);
         proc.WaitForExit();
-
-        if (!string.IsNullOrEmpty(stdout))
-            Console.Write(stdout);
-
-        if (!string.IsNullOrEmpty(stderr))
-            Console.Write(stderr);
     }
 }
