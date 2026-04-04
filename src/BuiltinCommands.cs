@@ -26,6 +26,11 @@ public static class BuiltinCommands
     {
         try
         {
+            if(path == "~")
+            {
+                path = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+            }
+
             if(Directory.Exists(path))
                 Directory.SetCurrentDirectory(path);
             else
