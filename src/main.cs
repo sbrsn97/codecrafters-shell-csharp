@@ -15,7 +15,17 @@ class Program
             if (userInput == null)
                 break;
 
-            CommandLine? parsed = CommandLineParser.Parse(userInput);
+            CommandLine? parsed;
+            try
+            {
+                parsed = CommandLineParser.Parse(userInput);
+            }
+            catch (InvalidOperationException ex)
+            {
+                Console.WriteLine(ex.Message);
+                continue;
+            }
+
             if (parsed == null)
                 continue;
 
