@@ -38,9 +38,10 @@ It supports built-in commands, external executable lookup through `PATH`, redire
 ```text
 src/
   Commands/
-  Core/
-  Enums/
-  Factories/
+  Completion/
+  IO/
+  Models/
+  Parsing/
   main.cs
 ```
 
