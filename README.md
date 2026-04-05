@@ -1,34 +1,77 @@
-[![progress-banner](https://backend.codecrafters.io/progress/shell/22d62eda-5c82-4f85-be93-89a653cbf07e)](https://app.codecrafters.io/users/codecrafters-bot?r=2qF)
+README.md
 
-This is a starting point for C# solutions to the
-["Build Your Own Shell" Challenge](https://app.codecrafters.io/courses/shell/overview).
+# Codecrafters Shell in C#
 
-In this challenge, you'll build your own POSIX compliant shell that's capable of
-interpreting shell commands, running external programs and builtin commands like
-cd, pwd, echo and more. Along the way, you'll learn about shell command parsing,
-REPLs, builtin commands, and more.
+A small shell implementation written in C# for the Codecrafters Shell challenge.
 
-**Note**: If you're viewing this repo on GitHub, head over to
-[codecrafters.io](https://codecrafters.io) to try the challenge.
+It supports built-in commands, external executable lookup through `PATH`, redirections, and tab completion.
 
-# Passing the first stage
+## Features
 
-The entry point for your `shell` implementation is in `src/main.cs`. Study and
-uncomment the relevant code, then run the command below to execute the tests on
-our servers:
+- Built-in commands:
+  - `echo`
+  - `exit`
+  - `pwd`
+  - `type`
+  - `cd`
+  - `ls`
+- External command execution from `PATH`
+- Command parsing with:
+  - single quotes
+  - double quotes
+  - backslash escaping
+- Redirections:
+  - `>`
+  - `1>`
+  - `2>`
+  - `>>`
+  - `1>>`
+  - `2>>`
+- Tab completion:
+  - built-in commands
+  - executables from `PATH`
+  - multiple-match handling
+  - longest common prefix completion
 
-```sh
-codecrafters submit
+## Project Structure
+
+```text
+src/
+  Commands/
+  Core/
+  Enums/
+  Factories/
+  main.cs
 ```
 
-Time to move on to the next stage!
+## Requirements
 
-# Stage 2 & beyond
+- .NET SDK
 
-Note: This section is for stages 2 and beyond.
+## Run
 
-1. Ensure you have `dotnet (9.0)` installed locally
-1. Run `./your_program.sh` to run your program, which is implemented in
-   `src/main.cs`.
-1. Run `codecrafters submit` to submit your solution to CodeCrafters. Test
-   output will be streamed to your terminal.
+```bash
+dotnet run
+```
+
+## Example Commands
+
+```sh
+echo hello
+pwd
+type echo
+type ls
+ls
+cd ..
+echo hello > out.txt
+echo world >> out.txt
+cat out.txt
+```
+
+## Notes
+
+This project was built incrementally while solving the Codecrafters Shell challenge stage by stage.
+
+## License
+
+This project is for learning and challenge-solving purposes.
